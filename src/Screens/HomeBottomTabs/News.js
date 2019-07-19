@@ -1,5 +1,5 @@
 import React, { PureComponent } from 'react';
-import { FlatList, Platform, StatusBar, ActivityIndicator, View } from 'react-native';
+import { FlatList, Platform, StatusBar, ActivityIndicator, BackHandler, Alert } from 'react-native';
 import styled from 'styled-components'
 import { getNews } from '../../helpers/db'
 import FlatListItem from '../../components/FlatListItem'
@@ -8,16 +8,35 @@ class News extends PureComponent {
     state = {
         data: [],
         isLoading: true
-    };
+    }
 
     sleep(ms) {
         return new Promise(resolve => setTimeout(resolve, ms))
     }
 
     async componentDidMount() {
+        this.backHandler = BackHandler.addEventListener('hardwareBackPress', () => {
+            Alert.alert(
+                'Confirmação',
+                'Deseja sair do aplicativo?',
+                [
+                    {
+                        text: 'Não',
+                        style: 'cancel'
+                    },
+                    {
+                        text: 'Sim',
+                        onPress: () => { BackHandler.exitApp() }
+                    }
+                ]
+            )
+
+            return true
+        })
+
         const newsList = await getNews()
 
-        await this.sleep(3000)
+        await this.sleep(1250)
 
         this.setState({
             data: JSON.parse(newsList),
@@ -25,14 +44,20 @@ class News extends PureComponent {
         })
     }
 
-    applyKeyExtractor = (item) => "" + item.id;
+    componentWillUnmount() {
+        this.backHandler.remove()
+    }
 
-    renderItens = ({ item }) => (
-        <FlatListItem
-            title={item.title}
-            text={item.text}
-        />
-    );
+    applyKeyExtractor = (item) => "" + item.id
+
+    renderItens = ({ item }) => {
+        return (
+            <FlatListItem
+                title={item.title}
+                text={item.text}
+            />
+        )
+    }
 
     renderSeparator = () => {
         return (
@@ -40,29 +65,22 @@ class News extends PureComponent {
         )
     }
 
-    renderFooter = () => {
-        if (!this.state.isLoading) return null
-
-        return (
-            <View style={{
-                paddingVertical: 20,
-                borderTopWidth: 1,
-                borderTopColor: '#ced0ce',
-                alignContent: "center"
-            }}>
-                <ActivityIndicator size='large' />
-            </View>
-        )
-    }
-
     render() {
+        if (this.state.isLoading) {
+            return (
+                <LoadingContainer>
+                    <ActivityIndicator size='large' color='#A52A2A' />
+                </LoadingContainer>
+            )
+        }
+
         return (
             <FlatList
                 style={{
                     paddingTop:
                         Platform.OS === 'android'
                             ? StatusBar.currentHeight : 20,
-                    backgroundColor: '#325370'
+                    backgroundColor: '#696969'
                 }}
                 data={this.state.data}
                 extraData={this.state}
@@ -81,6 +99,13 @@ const Separator = styled.View`
     margin-right: 10px;
     margin-bottom: 5px;
     margin-top: 5px;
+`
+
+const LoadingContainer = styled.View`
+    flex: 1;
+    align-items: center;
+    justify-content: center;
+    background-color: #325370;
 `
 
 export default News

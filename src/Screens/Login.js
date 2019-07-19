@@ -1,13 +1,26 @@
 import React, { Component } from 'react'
-import { StatusBar, Keyboard, ActivityIndicator, Alert , Image} from 'react-native'
+import {
+    Image, StatusBar, Keyboard, ActivityIndicator, Alert,
+    Animated, KeyboardAvoidingView, TouchableWithoutFeedback
+} from 'react-native'
 import styled from 'styled-components'
 import { login } from '../helpers/db'
 
 class Login extends Component {
     state = {
-        email:'andressa@user.com',
+        fadeAnim: new Animated.Value(0),
+        email: 'andressa@user.com',
         password: '103020',
         isLoading: false
+    }
+
+    componentDidMount() {
+        Animated.timing(this.state.fadeAnim,
+            {
+                toValue: 1,
+                duration: 750
+            }
+        ).start()
     }
 
     sleep(ms) {
@@ -29,7 +42,7 @@ class Login extends Component {
             isLoading: true
         })
 
-        await this.sleep(3000)
+        await this.sleep(1250)
 
         const response = await login(email, password)
 
@@ -50,18 +63,17 @@ class Login extends Component {
         return (
             <ContainerSafeArea>
                 <StatusBar barStyle='light-content' />
-                <ContainerKeyboardAvoid behavior='padding'>
-                    <ContainerTouchNoFeed onPress={Keyboard.dismiss}>
-                        <Container>
+                <KeyboardAvoidingView style={{ flex: 1 }} behavior='padding'>
+                    <TouchableWithoutFeedback style={{ flex: 1 }} onPress={Keyboard.dismiss}>
+                        <Container as={Animated.View} style={{ opacity: this.state.fadeAnim }}>
                             <LogoContainer>
-                                <Image source={require('../images/images.png')} />
-                                <Title>Bem-Vindo(a)</Title>
+                                <Image source={require('../images/welcome_image.png')} />
                             </LogoContainer>
                             <InfoContainer>
                                 {
                                     isLoading
                                         ?
-                                        <ActivityIndicator size='large' color='#f7c744' />
+                                        <ActivityIndicator size='large' color='#A52A2A' />
                                         :
                                         <React.Fragment>
                                             <Input
@@ -95,8 +107,8 @@ class Login extends Component {
                                 }
                             </InfoContainer>
                         </Container>
-                    </ContainerTouchNoFeed>
-                </ContainerKeyboardAvoid>
+                    </TouchableWithoutFeedback>
+                </KeyboardAvoidingView>
             </ContainerSafeArea>
         )
     }
@@ -104,23 +116,11 @@ class Login extends Component {
 
 const ContainerSafeArea = styled.SafeAreaView`
     flex: 1;
-    background-color: #325370;
-    flex-direction: column;
-`
-
-const ContainerKeyboardAvoid = styled.KeyboardAvoidingView`
-    flex: 1;
-    flex-direction: column;
-`
-
-const ContainerTouchNoFeed = styled.TouchableWithoutFeedback`
-    flex: 1;
-    flex-direction: column;
+    background-color: #696969;
 `
 
 const Container = styled.View`
     flex: 1;
-    flex-direction: column;
 `
 
 const LogoContainer = styled.View`
@@ -138,30 +138,16 @@ const InfoContainer = styled.View`
     padding: 20px;
 `
 
-const Logo = styled.Text`
-    font-family: serif;
-    font-style: italic;
-    font-size: 24;
-`
-
-const Title = styled.Text`
-    color: #f7c744;
-    font-size: 18;
-    text-align: center;
-    margin-top: 5;
-    opacity: 0.9;
-`
-
 const Input = styled.TextInput`
     height: 40;
     background-color: rgba(255, 255, 255, 0.2);
-    color: #fff;
+    color: white;
     padding-horizontal: 10px;
     margin-bottom: 20px;
 `
 
 const Button = styled.TouchableOpacity`
-    background-color: #5F9EA0;
+    background-color: #A0522D;
     padding-vertical: 15px;
 `
 
